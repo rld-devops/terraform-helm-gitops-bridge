@@ -10,3 +10,8 @@ output "apps" {
   description = "ArgoCD apps"
   value       = try(helm_release.bootstrap, null)
 }
+
+output "metadata" {
+  description = "ArgoCD metadata"
+  value       = try(local.argocd_annotations, null)
+}
