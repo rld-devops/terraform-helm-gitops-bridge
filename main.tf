@@ -122,9 +122,10 @@ resource "helm_release" "bootstrap" {
   version   = "1.0.0"
 
   values = [
-    {
-      resources = each.value
-    }
+    <<-EOT
+    resources:
+      - ${indent(4, each.value)}
+    EOT
   ]
 
   depends_on = [resource.kubernetes_secret_v1.cluster]
