@@ -41,34 +41,9 @@ resource "helm_release" "argocd" {
   replace                    = try(var.argocd.replace, null)
   lint                       = try(var.argocd.lint, null)
 
-  dynamic "postrender" {
-    for_each = length(try(var.argocd.postrender, {})) > 0 ? [var.argocd.postrender] : []
-
-    content {
-      binary_path = postrender.value.binary_path
-      args        = try(postrender.value.args, null)
-    }
-  }
-
-  dynamic "set" {
-    for_each = try(var.argocd.set, [])
-
-    content {
-      name  = set.value.name
-      value = set.value.value
-      type  = try(set.value.type, null)
-    }
-  }
-
-  dynamic "set_sensitive" {
-    for_each = try(var.argocd.set_sensitive, [])
-
-    content {
-      name  = set_sensitive.value.name
-      value = set_sensitive.value.value
-      type  = try(set_sensitive.value.type, null)
-    }
-  }
+  postrender = length(try(var.argocd.postrender, {})) > 0 ? [var.argocd.postrender] : []
+  set           = try(var.argocd.set, [])
+  set_sensitive = try(var.argocd.set_sensitive, [])
 
 }
 
@@ -147,10 +122,9 @@ resource "helm_release" "bootstrap" {
   version   = "1.0.0"
 
   values = [
-    <<-EOT
-    resources:
-      - ${indent(4, each.value)}
-    EOT
+    {
+      resources = each.value
+    }
   ]
 
   depends_on = [resource.kubernetes_secret_v1.cluster]
