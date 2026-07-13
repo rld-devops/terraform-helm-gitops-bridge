@@ -1,0 +1,39 @@
+name: SonarQube scan
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  SONAR_HOST_URL: ${{ vars.SONAR_DEV_HOST_URL }}
+  SONAR_TOKEN: ${{ secrets.SONAR_DEV_TOKEN }}
+  SONAR_PROJECT: "terraform-helm-gitops-bridge"
+
+jobs:
+  run-scan:
+    name: Sonar-scanner
+    runs-on: devops-linux-runner
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+        with:
+          # Disabling shallow clones is recommended for improving the relevancy of reporting
+          fetch-depth: 0
+
+      - uses: sonarsource/sonarqube-scan-action@master
+        with:
+          args: >
+            -Dsonar.version=${{ github.event.release.tag_name }}
+            -Dsonar.terraform.provider.aws.version=5
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT }}
+            -Dsonar.projectName=${{ env.SONAR_PROJECT }}
+            -Dsonar.sources=.
